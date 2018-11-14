@@ -27,6 +27,13 @@ def score_example(weights,example):
     else:
        # print(example[0][0])
         return 0
+def predict_all_labels(weights,examples):
+    labels = []
+    for example in examples:
+        val = compute_example(weights,example[1:])
+        labelGuess = sign(val)
+        labels.append(labelGuess)
+    return labels
 def get_score(weights,examples):
     score = 0
     for example in examples:
@@ -119,11 +126,8 @@ def performFullQuestion(rates,train,test,rateModfier,epsilons = [0],average = Fa
     bestWeights = weightSet[index]
     
     bestPerceptron = get_score(bestWeights,test)
-    shitWeights = np.random.rand(80000) *0
-    shitWeights[0] = -10
-    negativeOnly = get_score(shitWeights,test)
-    print('negativeOnly accuracy ' + str(negativeOnly))
 
     print('test accuracy ' + str(bestPerceptron))
     plt.plot(epochScores)
     plt.show()
+    return bestWeights

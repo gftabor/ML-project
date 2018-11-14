@@ -24,18 +24,32 @@ def readExamples(folder,files):
                 example[0][0] = -1
             examples.append(example)
     return examples
-
+def writeAnswers(folder,file,labels,name):
+    newFile = open(name,"w")
+    f = open(folder + file)
+    lines = f.readlines()
+    newFile.write('example_id,label\n')
+    for index in range(len(lines)):
+        label = labels[index]
+        if(label < 0):
+            label = 0
+        newString = lines[index][:-1] +',' + str(label) + lines[index][-1]
+        newFile.write(newString)
+    newFile.close
 #declare variables
 folder = 'movie-ratings/'
 cvFolder = 'data-splits/'
 files = ['data.train']
 test_files = ['data.test']
-devel_files = ['diabetes.dev']
+devel_files = ['data.eval.anon']
+devel_id = 'data.eval.anon.id'
+
 
 currentFolder = folder + cvFolder
 
 train = readExamples(currentFolder,files)
 test = readExamples(currentFolder,test_files)
+devel = readExamples(currentFolder,devel_files)
 
 
 rates = [1,0.1,0.01,0.001]
@@ -43,7 +57,8 @@ rates = [1,0.1,0.01,0.001]
 
 #output = perceptron.trainAndEvaluate(train,test,rates[0],perceptron.sameRate,10,0,average = False)
 
-perceptron.performFullQuestion(rates,train,test,perceptron.sameRate,[0], False)
-
+bestWeights = perceptron.performFullQuestion(rates,train,test,perceptron.sameRate,[0], False)
+perceptron_Labels = perceptron.predict_all_labels(bestWeights,devel)
+writeAnswers(currentFolder,devel_id,perceptron_Labels,'perceptron.csv')
 
 #performFullQuestion(rates,sameRate)
