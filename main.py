@@ -20,6 +20,8 @@ def readExamples(folder,files):
                 data = feature.split(':')
                 data = (int(data[0]),float(data[1]))
                 example.append(data)
+            if(example[0][0]== 0):
+                example[0][0] = -1
             examples.append(example)
     return examples
 
@@ -36,12 +38,12 @@ train = readExamples(currentFolder,files)
 test = readExamples(currentFolder,test_files)
 
 
-rates = [1,0.1,0.01]
+rates = [1,0.1,0.01,0.001]
 
 
-output = perceptron.trainAndEvaluate(train,test,rates[0],perceptron.sameRate,10,0,average = False)
+#output = perceptron.trainAndEvaluate(train,test,rates[0],perceptron.sameRate,10,0,average = False)
 
-
+perceptron.performFullQuestion(rates,train,test,perceptron.sameRate,[0], False)
 
 
 #performFullQuestion(rates,sameRate)

@@ -62,7 +62,7 @@ def trainAndEvaluate(train,test,learningRate,rateModifierFunction,epoch,epsilon,
     np.random.seed(473)
     trainSet = train[:] #copy to avoid shuffling issues
     testSet = test[:]
-    weights = np.random.rand(80000) * 0.02 -0.01
+    weights = np.random.rand(80000) * 0.2 -0.1
     weightSet = []
     count = 0
     updateCount = 0
@@ -84,18 +84,14 @@ def trainAndEvaluate(train,test,learningRate,rateModifierFunction,epoch,epsilon,
     score = get_score(saveWeights,testSet)
     return (score,weightSet,updateCountSet)
 
-def performFullQuestion(rates,rateModfier,epsilons = [0],average = False):
+def performFullQuestion(rates,train,test,rateModfier,epsilons = [0],average = False):
     perEpsilonAccuracy = []
     bestRates = []
     for epsilon in epsilons:
         crossAccuracy = []
         for rate in rates:
-            score = []
-            for cv in cvs:
-                (cv_score, weightSet,updateCountSet) = trainAndEvaluate(cv[0],cv[1],rate,rateModfier,10,epsilon,average)
-                score.append(cv_score)
-            aver = np.average(score)
-            crossAccuracy.append(aver)
+            (score, weightSet,updateCountSet) = trainAndEvaluate(train,test,rate,rateModfier,10,epsilon,average)
+            crossAccuracy.append(score)
         index = np.argmax(crossAccuracy)
         bestRate = rates[index]
         bestRates.append(bestRate)
@@ -111,10 +107,10 @@ def performFullQuestion(rates,rateModfier,epsilons = [0],average = False):
     
     
     
-    (score, weightSet,updateCountSet) = trainAndEvaluate(train,devel,bestRate,rateModfier,20,bestEpsilon,average)
+    (score, weightSet,updateCountSet) = trainAndEvaluate(train,test,bestRate,rateModfier,20,bestEpsilon,average)
     epochScores = []
     for weights in weightSet:
-        score = get_score(weights,devel)
+        score = get_score(weights,test)
         epochScores.append(score)
     index = np.argmax(epochScores)
     print('updates on learning algorithm ' +str(updateCountSet[index]))
@@ -123,6 +119,11 @@ def performFullQuestion(rates,rateModfier,epsilons = [0],average = False):
     bestWeights = weightSet[index]
     
     bestPerceptron = get_score(bestWeights,test)
+    shitWeights = np.random.rand(80000) *0
+    shitWeights[0] = -10
+    negativeOnly = get_score(shitWeights,test)
+    print('negativeOnly accuracy ' + str(negativeOnly))
+
     print('test accuracy ' + str(bestPerceptron))
     plt.plot(epochScores)
     plt.show()
