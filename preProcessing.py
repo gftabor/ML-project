@@ -8,6 +8,9 @@ Created on Wed Nov 14 13:17:32 2018
 
 from thesaurus import Word
 import numpy as np
+from multiprocessing import Pool
+import pickle
+
 
 part = ['adj','adv','contraction','conj','determiner',
         'interj','noun','prefix','prep','pron','verb',
@@ -38,15 +41,18 @@ def findWordInDataset(word_Dictionary,synonymSets,word,count):
                 occurances = count[word_Dictionary[synonym]]
                 if(occurances > 5):
                     print(word + ' ' + synonym + ' ' + str(word_Dictionary[synonym]))
-                    return
+                    #index of synonym
+                    return word_Dictionary[synonym]
                 else:
-                    print('too small ' + synonym + ' ' str(occurances))
-                
-            #see if its in dataset, find index if it is
-            
-            
-
-
+                    #print('too small ' + synonym + ' ' + str(occurances))
+                    a =5
+    return False
+def parallel(inputs):
+    (word, word_Dictionary,count,chosen_index) = inputs
+    new_instance = Word(word)
+    synonyms = new_instance.synonyms('all',relevance = [2,3],partOfSpeech=part)
+    response = findWordInDataset(word_Dictionary,synonyms,word,count)
+    return(chosen_index,response)
 
 def findSynonms(folder,fileName,count):
     f = open(folder+ fileName)
@@ -57,15 +63,24 @@ def findSynonms(folder,fileName,count):
     word_Dictionary={x:i for i,x in enumerate(lines)}
     indices = np.argsort(count)
     index = 1 #skip first its 0
+    inputSet = []
     while(count[indices[index]]<2):
         chosen_index = indices[index]
         word = lines[chosen_index]
-        new_instance = Word(word)
-        synonyms = new_instance.synonyms('all',relevance = [2,3],partOfSpeech=part)
-        findWordInDataset(word_Dictionary,synonyms,word,count)
+        inputSet.append((word, word_Dictionary,count,chosen_index))
         index +=1
-        
-        
+            
+    p = Pool(50)
+
+    Remapping = p.map(parallel,inputSet)
+    
+    with open('remapping.data', 'wb') as filehandle:  
+    # store the data as binary data stream
+        pickle.dump(Remapping, filehandle)
+    return Remapping
+    
+    
+    
         
 
     
