@@ -50,8 +50,14 @@ def findWordInDataset(word_Dictionary,synonymSets,word,count):
 def parallel(inputs):
     (word, word_Dictionary,count,chosen_index) = inputs
     new_instance = Word(word)
-    synonyms = new_instance.synonyms('all',relevance = [2,3],partOfSpeech=part)
+    synonyms = new_instance.synonyms('all',relevance = [3],partOfSpeech=part)
     response = findWordInDataset(word_Dictionary,synonyms,word,count)
+    if(response == False):
+        synonyms = new_instance.synonyms('all',relevance = [2],partOfSpeech=part)
+        response = findWordInDataset(word_Dictionary,synonyms,word,count)
+        if(response == False):
+            synonyms = new_instance.synonyms('all',relevance = [1],partOfSpeech=part)
+            response = findWordInDataset(word_Dictionary,synonyms,word,count)
     return(chosen_index,response)
 
 def findSynonms(folder,fileName,count):
