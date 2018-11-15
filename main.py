@@ -64,8 +64,8 @@ devel = readExamples(currentFolder,devel_files)
 #call these to generate new remap
 count = preProcessing.findWordCount([train,test,devel])
 
-#currentFolder = folder + rawFolder
-#preProcessing.findSynonms(currentFolder,vocab,count)
+currentFolder = folder + rawFolder
+preProcessing.findSynonms(currentFolder,vocab,count)
 
 
 with open('remapping.data', 'rb') as filehandle:  
@@ -81,11 +81,11 @@ rateModifierFunction = perceptron.decreasingRate
 
 #normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
 
-preProcessing.applyRemap(train,remap_dictionary)
-preProcessing.applyRemap(test,remap_dictionary)
-preProcessing.applyRemap(devel,remap_dictionary)
+#preProcessing.applyRemap(train,remap_dictionary)
+#preProcessing.applyRemap(test,remap_dictionary)
+#preProcessing.applyRemap(devel,remap_dictionary)
 
-remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+#remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
 
 
 #perceptron_Labels = perceptron.predict_all_labels(remapBestWeights,devel)

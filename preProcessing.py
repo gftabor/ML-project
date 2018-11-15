@@ -96,11 +96,11 @@ def findSynonms(folder,fileName,count):
         inputSet.append((word, word_Dictionary,count,chosen_index))
         index +=1
             
-    p = Pool(20)
+    p = Pool(40)
 
     Remapping = p.map(parallel,inputSet)
     remap = [s for s in Remapping if s[1] != False]
-    with open('remapping'+str(cuttoff)+'.data', 'wb') as filehandle:  
+    with open('remapping_Rcheck_'+str(cuttoff)+'.data', 'wb') as filehandle:  
     # store the data as binary data stream
         pickle.dump(remap, filehandle)
     return remap
