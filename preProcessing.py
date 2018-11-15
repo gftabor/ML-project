@@ -24,9 +24,28 @@ def findWordCount(exampleSets):
                 value = item[1]
                 count[feature] += value
     last_real = np.argmin(count[1:])
-    print(last_real)
     real_count = count[:last_real+1]
-    return real_count
+    return count
+def applyRemap(dataset,remap):
+    for example in dataset:
+        for featureIndex in range(len(example[1:])):
+            feature = example[1:][featureIndex][0]
+            value = example[1:][featureIndex][1]
+            if(feature in remap):#worth remapping
+                newFeature = remap[feature]
+                for otherFeatureIndex in range(len(example[1:])):
+                    if(otherFeatureIndex == featureIndex): #if looking at same point twice, shouldnt happne was dumb
+                        continue
+                    otherFeature = example[1:][otherFeatureIndex][0]
+                    otherValue = example[1:][otherFeatureIndex][1]
+                    if(newFeature == otherFeature): #if found 
+                        example[1:][otherFeatureIndex][1] += value
+                        example[1:][featureIndex][1] = 0
+                        break
+                example[1:][featureIndex][0] = newFeature #if new feature isnt in example change featureID
+                        
+            else:
+                continue
 def findWordInDataset(word_Dictionary,synonymSets,word,count):
     total = 0
     for synonymSet in synonymSets:
@@ -70,20 +89,21 @@ def findSynonms(folder,fileName,count):
     indices = np.argsort(count)
     index = 1 #skip first its 0
     inputSet = []
-    while(count[indices[index]]<2):
+    cuttoff = 2
+    while(count[indices[index]]<cuttoff):
         chosen_index = indices[index]
         word = lines[chosen_index]
         inputSet.append((word, word_Dictionary,count,chosen_index))
         index +=1
             
-    p = Pool(50)
+    p = Pool(20)
 
     Remapping = p.map(parallel,inputSet)
-    
-    with open('remapping.data', 'wb') as filehandle:  
+    remap = [s for s in Remapping if s[1] != False]
+    with open('remapping'+str(cuttoff)+'.data', 'wb') as filehandle:  
     # store the data as binary data stream
-        pickle.dump(Remapping, filehandle)
-    return Remapping
+        pickle.dump(remap, filehandle)
+    return remap
     
     
     

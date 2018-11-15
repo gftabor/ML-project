@@ -8,6 +8,8 @@ Created on Fri Sep 28 14:08:12 2018
 
 import perceptron
 import preProcessing
+import pickle
+import numpy as np
 def readExamples(folder,files):
     examples = []
     for file in files:
@@ -19,7 +21,7 @@ def readExamples(folder,files):
             example.append([int(features[0])])
             for feature in features[1:]:
                 data = feature.split(':')
-                data = (int(data[0]),float(data[1]))
+                data = [int(data[0]),float(data[1])]
                 example.append(data)
             if(example[0][0]== 0):
                 example[0][0] = -1
@@ -38,6 +40,7 @@ def writeAnswers(folder,file,labels,name):
         newString = lines[index][:-1] +',' + str(label) + lines[index][-1]
         newFile.write(newString)
     newFile.close
+
 #declare variables
 folder = 'movie-ratings/'
 cvFolder = 'data-splits/'
@@ -57,17 +60,37 @@ train = readExamples(currentFolder,files)
 test = readExamples(currentFolder,test_files)
 devel = readExamples(currentFolder,devel_files)
 
-currentFolder = folder + rawFolder
 
+#call these to generate new remap
 count = preProcessing.findWordCount([train,test,devel])
-lines = preProcessing.findSynonms(currentFolder,vocab,count)
+
+#currentFolder = folder + rawFolder
+#preProcessing.findSynonms(currentFolder,vocab,count)
 
 
-rates = [1,0.1,0.01,0.001]
+with open('remapping.data', 'rb') as filehandle:  
+    # read the data as binary data stream
+    remapList = pickle.load(filehandle)
+remap_dictionary={x[0]:x[1] for i,x in enumerate(remapList)}
 
-#bestWeights = perceptron.performFullQuestion(rates,train,test,perceptron.sameRate,[0], False)
-#perceptron_Labels = perceptron.predict_all_labels(bestWeights,devel)
-#writeAnswers(currentFolder,devel_id,perceptron_Labels,'perceptron.csv')
+rates = np.array(range(10))/10.0
+rates = np.linspace(1,5,6)
+#rates = [1,0.1,0.01]
+
+rateModifierFunction = perceptron.decreasingRate
+
+#normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+
+preProcessing.applyRemap(train,remap_dictionary)
+preProcessing.applyRemap(test,remap_dictionary)
+preProcessing.applyRemap(devel,remap_dictionary)
+
+remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+
+
+#perceptron_Labels = perceptron.predict_all_labels(remapBestWeights,devel)
+
+#writeAnswers(currentFolder,devel_id,perceptron_Labels,'perceptron_synonyms2.csv')
 
 
 
