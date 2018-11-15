@@ -7,13 +7,14 @@ Created on Fri Sep 28 14:08:12 2018
 """
 
 import perceptron
+import preProcessing
 def readExamples(folder,files):
     examples = []
     for file in files:
         f = open(folder+ file)
         lines = f.readlines()
         for line in lines:
-            features = line.split(sep=' ')
+            features = line.split(' ')
             example = []
             example.append([int(features[0])])
             for feature in features[1:]:
@@ -24,6 +25,7 @@ def readExamples(folder,files):
                 example[0][0] = -1
             examples.append(example)
     return examples
+
 def writeAnswers(folder,file,labels,name):
     newFile = open(name,"w")
     f = open(folder + file)
@@ -39,11 +41,17 @@ def writeAnswers(folder,file,labels,name):
 #declare variables
 folder = 'movie-ratings/'
 cvFolder = 'data-splits/'
+rawFolder = 'raw-data/'
 files = ['data.train']
 test_files = ['data.test']
 devel_files = ['data.eval.anon']
 devel_id = 'data.eval.anon.id'
+vocab = 'vocab'
 
+currentFolder = folder + rawFolder
+
+
+#preProcessing.findSynonms(currentFolder,vocab)
 
 currentFolder = folder + cvFolder
 
@@ -51,14 +59,14 @@ train = readExamples(currentFolder,files)
 test = readExamples(currentFolder,test_files)
 devel = readExamples(currentFolder,devel_files)
 
+count = preProcessing.findWordCount([train,test,devel])
+
 
 rates = [1,0.1,0.01,0.001]
 
+#bestWeights = perceptron.performFullQuestion(rates,train,test,perceptron.sameRate,[0], False)
+#perceptron_Labels = perceptron.predict_all_labels(bestWeights,devel)
+#writeAnswers(currentFolder,devel_id,perceptron_Labels,'perceptron.csv')
 
-#output = perceptron.trainAndEvaluate(train,test,rates[0],perceptron.sameRate,10,0,average = False)
 
-bestWeights = perceptron.performFullQuestion(rates,train,test,perceptron.sameRate,[0], False)
-perceptron_Labels = perceptron.predict_all_labels(bestWeights,devel)
-writeAnswers(currentFolder,devel_id,perceptron_Labels,'perceptron.csv')
 
-#performFullQuestion(rates,sameRate)

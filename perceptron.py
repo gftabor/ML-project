@@ -69,12 +69,12 @@ def trainAndEvaluate(train,test,learningRate,rateModifierFunction,epoch,epsilon,
     np.random.seed(473)
     trainSet = train[:] #copy to avoid shuffling issues
     testSet = test[:]
-    weights = np.random.rand(80000) * 0.2 -0.1
+    weights = np.random.rand(75000) * 0.2 -0.1
     weightSet = []
     count = 0
     updateCount = 0
     updateCountSet = []
-    averageWeights = np.random.rand(80000) * 0
+    averageWeights = np.zeros(75000)
     for epoch in range(epoch):
         np.random.shuffle(trainSet)
         for example in trainSet:
