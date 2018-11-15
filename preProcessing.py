@@ -25,7 +25,7 @@ def findWordCount(exampleSets):
                 count[feature] += value
     last_real = np.argmin(count[1:])
     real_count = count[:last_real+1]
-    return count
+    return real_count
 def applyRemap(dataset,remap):
     for example in dataset:
         for featureIndex in range(len(example[1:])):

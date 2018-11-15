@@ -64,8 +64,8 @@ devel = readExamples(currentFolder,devel_files)
 #call these to generate new remap
 count = preProcessing.findWordCount([train,test,devel])
 
-currentFolder = folder + rawFolder
-preProcessing.findSynonms(currentFolder,vocab,count)
+raw = folder + rawFolder
+debug = preProcessing.findSynonms(raw,vocab,count)
 
 
 with open('remapping.data', 'rb') as filehandle:  
