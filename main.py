@@ -48,10 +48,8 @@ devel_files = ['data.eval.anon']
 devel_id = 'data.eval.anon.id'
 vocab = 'vocab'
 
-currentFolder = folder + rawFolder
 
 
-#preProcessing.findSynonms(currentFolder,vocab)
 
 currentFolder = folder + cvFolder
 
@@ -59,7 +57,10 @@ train = readExamples(currentFolder,files)
 test = readExamples(currentFolder,test_files)
 devel = readExamples(currentFolder,devel_files)
 
+currentFolder = folder + rawFolder
+
 count = preProcessing.findWordCount([train,test,devel])
+lines = preProcessing.findSynonms(currentFolder,vocab,count)
 
 
 rates = [1,0.1,0.01,0.001]
