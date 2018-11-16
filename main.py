@@ -64,13 +64,14 @@ devel = readExamples(currentFolder,devel_files)
 #call these to generate new remap
 count = preProcessing.findWordCount([train,test,devel])
 
-raw = folder + rawFolder
-debug = preProcessing.findSynonms(raw,vocab,count)
+#raw = folder + rawFolder
+#debug = preProcessing.findSynonms(raw,vocab,count)
 
 
-with open('remapping.data', 'rb') as filehandle:  
+with open('remapping_Rcheck_2.data', 'rb') as filehandle:  
     # read the data as binary data stream
     remapList = pickle.load(filehandle)
+    
 remap_dictionary={x[0]:x[1] for i,x in enumerate(remapList)}
 
 rates = np.array(range(10))/10.0
@@ -79,13 +80,13 @@ rates = np.linspace(1,5,6)
 
 rateModifierFunction = perceptron.decreasingRate
 
-#normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
 
-#preProcessing.applyRemap(train,remap_dictionary)
-#preProcessing.applyRemap(test,remap_dictionary)
-#preProcessing.applyRemap(devel,remap_dictionary)
+preProcessing.applyRemap(train,remap_dictionary)
+preProcessing.applyRemap(test,remap_dictionary)
+preProcessing.applyRemap(devel,remap_dictionary)
 
-#remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
 
 
 #perceptron_Labels = perceptron.predict_all_labels(remapBestWeights,devel)

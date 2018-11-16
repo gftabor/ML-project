@@ -56,7 +56,7 @@ def learn_example(rate,weights,example,epsilon):
 def sameRate(count,epsilon,weights,example):
     return 1
 def decreasingRate(count,epsilon,weights,example):
-    return 1/(1.0 + count)
+    return 1/(1.0 + np.log(count))
 def aggressiveRate(count,epsilon,weights,example):
     y = score_example(weights,example)
     dot = 0
