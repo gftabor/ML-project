@@ -58,7 +58,7 @@ def findWordInDataset(word_Dictionary,synonymSets,word,count):
                 continue
             if(synonym in word_Dictionary):
                 occurances = count[word_Dictionary[synonym]]
-                if(occurances > 5):
+                if(occurances > 10):
                     print(word + ' ' + synonym + ' ' + str(word_Dictionary[synonym]))
                     #index of synonym
                     return word_Dictionary[synonym]
@@ -89,14 +89,14 @@ def findSynonms(folder,fileName,count):
     indices = np.argsort(count)
     index = 1 #skip first its 0
     inputSet = []
-    cuttoff = 2
+    cuttoff = 10
     while(count[indices[index]]<cuttoff):
         chosen_index = indices[index]
         word = lines[chosen_index]
         inputSet.append((word, word_Dictionary,count,chosen_index))
         index +=1
             
-    p = Pool(40)
+    p = Pool(20)
 
     Remapping = p.map(parallel,inputSet)
     remap = [s for s in Remapping if s[1] != False]
