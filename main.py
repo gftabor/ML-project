@@ -67,7 +67,10 @@ count = preProcessing.findWordCount([train,test,devel])
 #raw = folder + rawFolder
 #debug = preProcessing.findSynonms(raw,vocab,count)
 remapFiles = ['remapping_Rcheck_2.data','remapping_Rcheck_3.data','remapping_Rcheck_4.data']
-remapFile = remapFiles[int(sys.argv[0])]
+argument = sys.argv[1]
+print(argument)
+print(sys.argv)
+remapFile = remapFiles[int(argument)]
 print(remapFile)
 with open(remapFile, 'rb') as filehandle:  
     # read the data as binary data stream
