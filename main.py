@@ -10,6 +10,7 @@ import perceptron
 import preProcessing
 import pickle
 import numpy as np
+import sys
 def readExamples(folder,files):
     examples = []
     for file in files:
@@ -63,12 +64,13 @@ devel = readExamples(currentFolder,devel_files)
 
 #call these to generate new remap
 count = preProcessing.findWordCount([train,test,devel])
-
+ab
 #raw = folder + rawFolder
 #debug = preProcessing.findSynonms(raw,vocab,count)
-
-
-with open('remapping_Rcheck_2.data', 'rb') as filehandle:  
+remapFiles = ['remapping_Rcheck_2.data','remapping_Rcheck_3.data','remapping_Rcheck_4.data']
+remapFile = remapFiles[int(sys.argv[0])]
+print(remapFile)
+with open(remapFile, 'rb') as filehandle:  
     # read the data as binary data stream
     remapList = pickle.load(filehandle)
     
@@ -89,9 +91,9 @@ preProcessing.applyRemap(devel,remap_dictionary)
 remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
 
 
-#perceptron_Labels = perceptron.predict_all_labels(remapBestWeights,devel)
+perceptron_Labels = perceptron.predict_all_labels(remapBestWeights,devel)
 
-#writeAnswers(currentFolder,devel_id,perceptron_Labels,'perceptron_synonyms2.csv')
+writeAnswers(currentFolder,devel_id,perceptron_Labels,remapFile + 'Perceptron.csv')
 
 
 

@@ -128,6 +128,6 @@ def performFullQuestion(rates,train,test,rateModfier,epsilons = [0],average = Fa
     bestPerceptron = get_score(bestWeights,test)
 
     print('test accuracy ' + str(bestPerceptron))
-    plt.plot(epochScores)
-    plt.show()
+    #plt.plot(epochScores)
+    #plt.show()
     return bestWeights
