@@ -7,10 +7,14 @@ Created on Fri Sep 28 14:08:12 2018
 """
 
 import perceptron
-import preProcessing
+
+import rawData
 import pickle
 import numpy as np
 import sys
+import time
+import matplotlib.pyplot as plt
+
 def readExamples(folder,files):
     examples = []
     for file in files:
@@ -41,7 +45,39 @@ def writeAnswers(folder,file,labels,name):
         newString = lines[index][:-1] +',' + str(label) + lines[index][-1]
         newFile.write(newString)
     newFile.close
+def synonym(train,test,devel,raw):
+    import preProcessing
+    #call these to generate new remap
+    vocab = 'vocab'
 
+    #count = preProcessing.findWordCount([train,test,devel])
+    #debug = preProcessing.findSynonms(raw,vocab,count)
+    
+    remapFiles = ['remapping_Rcheck_2.data','remapping_Rcheck_3.data','remapping_Rcheck_4.data']
+    argument = sys.argv[1]
+    print(argument)
+    print(sys.argv)
+    remapFile = remapFiles[int(argument)]
+    print(remapFile)
+    with open(remapFile, 'rb') as filehandle:  
+        # read the data as binary data stream
+        remapList = pickle.load(filehandle)
+        
+    remap_dictionary={x[0]:x[1] for i,x in enumerate(remapList)}
+    preProcessing.applyRemap(train,remap_dictionary)
+    preProcessing.applyRemap(test,remap_dictionary)
+    preProcessing.applyRemap(devel,remap_dictionary)
+def DNN(train,test,devel,raw):
+
+    embed = rawData.embedStuff()
+    start = time.clock()
+    train = rawData.embedRawFiles(raw,trainRaw,train,embed)
+    print('took ' + str(time.clock()- start) )
+    test = rawData.embedRawFiles(raw,testRaw,test,embed)
+    print('took ' + str(time.clock()- start))
+    devel = rawData.embedRawFiles(raw,evalRaw,devel,embed)
+    print('took ' + str(time.clock()- start))
+    
 #declare variables
 folder = 'movie-ratings/'
 cvFolder = 'data-splits/'
@@ -49,53 +85,49 @@ rawFolder = 'raw-data/'
 files = ['data.train']
 test_files = ['data.test']
 devel_files = ['data.eval.anon']
+testRaw = ['test.rawtext']
+trainRaw = ['train.rawtext']
+evalRaw = ['eval.rawtext']
+
 devel_id = 'data.eval.anon.id'
-vocab = 'vocab'
+
+mainFolder = folder + cvFolder
+raw = folder + rawFolder
+
+
+train = readExamples(mainFolder,files)
+test = readExamples(mainFolder,test_files)
+devel = readExamples(mainFolder,devel_files)
+
+#How to preprocess
+#synnonym(train,test,devel,raw)
+#DNN(train,test,devel,raw)
 
 
 
 
-currentFolder = folder + cvFolder
-
-train = readExamples(currentFolder,files)
-test = readExamples(currentFolder,test_files)
-devel = readExamples(currentFolder,devel_files)
-
-
-#call these to generate new remap
-count = preProcessing.findWordCount([train,test,devel])
-#raw = folder + rawFolder
-#debug = preProcessing.findSynonms(raw,vocab,count)
-remapFiles = ['remapping_Rcheck_2.data','remapping_Rcheck_3.data','remapping_Rcheck_4.data']
-argument = sys.argv[1]
-print(argument)
-print(sys.argv)
-remapFile = remapFiles[int(argument)]
-print(remapFile)
-with open(remapFile, 'rb') as filehandle:  
-    # read the data as binary data stream
-    remapList = pickle.load(filehandle)
-    
-remap_dictionary={x[0]:x[1] for i,x in enumerate(remapList)}
-
-rates = np.array(range(10))/10.0
-rates = np.linspace(1,5,6)
+#perceptron run
 #rates = [1,0.1,0.01]
+#rateModifierFunction = perceptron.sameRate
+#normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+#labels = perceptron.predict_all_labels(normalBestWeights,devel)
 
-rateModifierFunction = perceptron.decreasingRate
+embed = rawData.embedStuff()
+(train_lines,train_labels) = rawData.readRawFiles(raw,trainRaw,train,True)
+(test_lines,test_labels) = rawData.readRawFiles(raw,testRaw,test,True)
+(eval_lines,eval_labels) = rawData.readRawFiles(raw,evalRaw,devel,True)
+train_features = embed.preProcessBatch(train_lines,1000)
+test_features = embed.preProcessBatch(test_lines,1000)
+eval_features = embed.preProcessBatch(eval_lines,1000)
 
-normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
-
-preProcessing.applyRemap(train,remap_dictionary)
-preProcessing.applyRemap(test,remap_dictionary)
-preProcessing.applyRemap(devel,remap_dictionary)
-
-remapBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
+losses = embed.trainNN(train_labels,train_features)
+plt.plot(losses)
+test_ = embed.evaluateNN(test_features)
+labels = embed.evaluateNN(eval_features)
 
 
-perceptron_Labels = perceptron.predict_all_labels(remapBestWeights,devel)
 
-writeAnswers(currentFolder,devel_id,perceptron_Labels,remapFile + 'Perceptron.csv')
+writeAnswers(mainFolder,devel_id,labels,'DNN' + '.csv')
 
 
 
