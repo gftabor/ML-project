@@ -14,7 +14,8 @@ import numpy as np
 import sys
 import time
 import matplotlib.pyplot as plt
-
+import BAYES
+import ID3
 def readExamples(folder,files):
     examples = []
     for file in files:
@@ -103,41 +104,49 @@ devel = readExamples(mainFolder,devel_files)
 #synnonym(train,test,devel,raw)
 #DNN(train,test,devel,raw)
 
-
-
-
 #perceptron run
 #rates = [1,0.1,0.01]
 #rateModifierFunction = perceptron.sameRate
 #normalBestWeights = perceptron.performFullQuestion(rates,train,test,rateModifierFunction,[0], False)
 #labels = perceptron.predict_all_labels(normalBestWeights,devel)
 
-embed = rawData.embedStuff()
+
+#Code for embedding
+#embed = rawData.embedStuff()
 #embed.bulkPreProcess('amazon/')
 
+#(train_lines,train_labels) = rawData.readRawFiles(raw,trainRaw,train,True)
+#(test_lines,test_labels) = rawData.readRawFiles(raw,testRaw,test,True)
+#
+#train_features = embed.preProcessBatch(train_lines,1000)
+#test_features = embed.preProcessBatch(test_lines,1000)
+#
+#
+#accuracies = embed.bulkTrain('amazon/data/',test_features,test_labels)
+#plt.plot(accuracies)
+#
+#(eval_lines,eval_labels) = rawData.readRawFiles(raw,evalRaw,devel,True)
+#eval_features = embed.preProcessBatch(eval_lines,1000)
+#
+#labels = np.round(embed.evaluateNN(eval_features)).reshape((-1))
+#writeAnswers(mainFolder,devel_id,labels,'DNN_amazonOnly' + '.csv')
+#
+#accuracies = embed.fullyTrainNN(train_labels,train_features,test_features,test_labels)
+#plt.plot(accuracies)
+#
+#labels = np.round(embed.evaluateNN(eval_features)).reshape((-1))
+#writeAnswers(mainFolder,devel_id,labels,'DNN_amazon_preTrain' + '.csv')
 
-(train_lines,train_labels) = rawData.readRawFiles(raw,trainRaw,train,True)
-(test_lines,test_labels) = rawData.readRawFiles(raw,testRaw,test,True)
 
-train_features = embed.preProcessBatch(train_lines,1000)
-test_features = embed.preProcessBatch(test_lines,1000)
-
-
-accuracies = embed.bulkTrain('amazon/data/',test_features,test_labels)
-plt.plot(accuracies)
+#Bayes
+#BAYES.NaiveBayes(train,test,0.1)
+#bayesLabels = BAYES.NaiveBayes(train,devel,0.1)
+#writeAnswers(mainFolder,devel_id,bayesLabels,'Bayes.csv')
 
 
-(eval_lines,eval_labels) = rawData.readRawFiles(raw,evalRaw,devel,True)
-eval_features = embed.preProcessBatch(eval_lines,1000)
-
-labels = np.round(embed.evaluateNN(eval_features)).reshape((-1))
-writeAnswers(mainFolder,devel_id,labels,'DNN_amazonOnly' + '.csv')
-
-accuracies = embed.fullyTrainNN(train_labels,train_features,test_features,test_labels)
-plt.plot(accuracies)
-
-labels = np.round(embed.evaluateNN(eval_features)).reshape((-1))
-writeAnswers(mainFolder,devel_id,labels,'DNN_amazon_preTrain' + '.csv')
-
+#ID3
+depth = 100
+IDLabels = ID3.run(train,devel,depth)
+writeAnswers(mainFolder,devel_id,IDLabels,str(depth) + 'ID3.csv')
 
 
