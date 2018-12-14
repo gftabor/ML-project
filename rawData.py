@@ -6,11 +6,11 @@ Created on Wed Nov 28 14:10:49 2018
 @author: tabor
 """
 
-import random
 import os
 os.environ["TFHUB_CACHE_DIR"] = './module'
-
+import time
 import tensorflow as tf
+import pickle
 
 import tensorflow_hub as hub
 import numpy as np
@@ -27,7 +27,20 @@ class embedStuff():
 
         self.message_enc2 = embed2(self.input_ph)
         self.message_enc3 = embed3(self.input_ph)
-                
+        
+        self.feature_ph = tf.placeholder(tf.float32, shape=[None,512]) 
+        self.label_ph = tf.placeholder(tf.float32, shape=[None,1])
+        
+        ## neural network
+        first = tf.layers.dense(self.feature_ph, 128, activation=tf.nn.relu) 
+        second = tf.layers.dense(first, 128, activation=tf.nn.relu)
+        
+        self.output = tf.layers.dense(second, 1, activation=tf.nn.sigmoid)
+
+        #self.cost = tf.nn.sigmoid_cross_entropy_with_logits(labels=label_ph, logits=self.output)
+        self.cost = tf.losses.mean_squared_error(self.label_ph,self.output)
+        self.train_op = tf.train.AdamOptimizer(learning_rate=1e-5).minimize(self.cost)
+        
         self.sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
 
     def preProcess(self,text):
@@ -45,43 +58,66 @@ class embedStuff():
                 feature_set = features
             else:
                 feature_set = np.concatenate((feature_set,features))
-        return feature_set.tolist()
-    def trainNN(self,labels,text):
-        self.sess.close()
-        y = text
-        tf.reset_default_graph()
-        self.sess = tf.InteractiveSession()
+        return feature_set
+    def bulkPreProcess(self,folder):
+        files = os.listdir(folder)
+        
+        print(files)
+        for file in files:
+            if(file[0] == 'd'):
+                print('saw data')
+                continue
+            (text,labels) = readRawAmazonFiles(folder,[file])
+            features = self.preProcessBatch(text,1000)
+            with open(folder + 'data/' +str(file) +'.data', 'wb') as filehandle:  
+                # store the data as binary data stream
+                pickle.dump((labels,features), filehandle)
+    def bulkTrain(self,folder,test_features,test_labels):
+        files = os.listdir(folder)
+        accuracies = []
+        for i in range(20):
+            np.random.shuffle(files) #for good science
+            start = time.clock()
+            for file in files:
 
-        ## Train NN on top of it (roughly)
-        self.input_ph = tf.placeholder(tf.float32, shape=[None,512]) 
-        self.label_ph = tf.placeholder(tf.float32, shape=[None,1])
-        
-        ## neural network
-        first = tf.layers.dense(self.input_ph, 128, activation=tf.nn.relu) 
-        second = tf.layers.dense(first, 128, activation=tf.nn.relu) 
-        self.output = tf.layers.dense(second, 1, activation=tf.nn.sigmoid)
-        
-        self.cost = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.label_ph, logits=self.output)
-        self.train_op = tf.train.AdamOptimizer(learning_rate=3e-3).minimize(self.cost)
-        
-        self.sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
-        losses = []
-        
-        labels = np.reshape(np.array(labels), [-1,1])
-        for i in range(300):
-           _, loss = self.sess.run([self.train_op, self.cost], {self.input_ph: y,self.label_ph: labels})
-           print(loss)
-           losses.append(loss)
-        return losses
+                with open(folder+file, 'rb') as filehandle:  
+                    # read the data as binary data stream
+                    (labels,features) = pickle.load(filehandle)
+
+                self.trainNN(labels,features)
+
+
+            test_ = np.round(self.evaluateNN(test_features)).reshape((-1))
+            a = test_ - np.array(test_labels)
+            score = np.sum([a==0]) / 12500.
+            print(str(time.clock() - start) + ' ' + str(score))
+            accuracies.append(score)
+            
+        return accuracies
+    def fullyTrainNN(self,labels,text,test_features,test_labels):
+        accuracies = []
+        for i in range(100):
+            self.trainNN(labels,text)
+                
+            test_ = np.round(self.evaluateNN(test_features)).reshape((-1))
+            a = test_ - np.array(test_labels)
+            score = np.sum([a==0]) / 12500.
+            accuracies.append(score)
+        return accuracies
+    def trainNN(self,labels,features):
+        labels = np.asarray(labels).astype('float32').reshape((-1,1))        
+        for i in range(10):
+           _, loss = self.sess.run([self.train_op, self.cost], {self.feature_ph: features,self.label_ph: labels})
     def evaluateNN(self,features):
-        labels = self.sess.run(self.output,{self.input_ph: features})
+        labels = self.sess.run(self.output,{self.feature_ph: features})
         return labels
         
         
 def readRawFiles(folder,files,normalData,banNegativeLabels = False):
+    lines = []
     for file in files:
         f = open(folder+ file)
-        lines = f.readlines()
+        lines += f.readlines()
     labels = []
     for index in range(len(lines)):
         label = normalData[index][0][0]
@@ -89,7 +125,23 @@ def readRawFiles(folder,files,normalData,banNegativeLabels = False):
             label = 0
         labels.append(label)
     return (lines,labels)
+def readRawAmazonFiles(folder,files):
+    text = []
+    labels = []
+    for file in files:
+        f = open(folder + file)
+        lines = f.readlines()
+        for line in lines:
+            splits = line.split(' ',1)
+            text.append(splits[1])
+            if(splits[0] == '__label__2'):
+                label = 1
+            if(splits[0] == '__label__1'):
+                label = 0
+            labels.append(label)
+    return (text,labels)
 
+                    
 def embedRawFiles(folder,files,normalData,embedder):
     (lines,labels) = readRawFiles(folder,files,normalData)
     for index in range(len(lines)):

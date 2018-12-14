@@ -42,7 +42,7 @@ def writeAnswers(folder,file,labels,name):
         label = labels[index]
         if(label < 0):
             label = 0
-        newString = lines[index][:-1] +',' + str(label) + lines[index][-1]
+        newString = lines[index][:-1] +',' + str(int(label)) + lines[index][-1]
         newFile.write(newString)
     newFile.close
 def synonym(train,test,devel,raw):
@@ -113,21 +113,31 @@ devel = readExamples(mainFolder,devel_files)
 #labels = perceptron.predict_all_labels(normalBestWeights,devel)
 
 embed = rawData.embedStuff()
+#embed.bulkPreProcess('amazon/')
+
+
 (train_lines,train_labels) = rawData.readRawFiles(raw,trainRaw,train,True)
 (test_lines,test_labels) = rawData.readRawFiles(raw,testRaw,test,True)
-(eval_lines,eval_labels) = rawData.readRawFiles(raw,evalRaw,devel,True)
+
 train_features = embed.preProcessBatch(train_lines,1000)
 test_features = embed.preProcessBatch(test_lines,1000)
+
+
+accuracies = embed.bulkTrain('amazon/data/',test_features,test_labels)
+plt.plot(accuracies)
+
+
+(eval_lines,eval_labels) = rawData.readRawFiles(raw,evalRaw,devel,True)
 eval_features = embed.preProcessBatch(eval_lines,1000)
 
-losses = embed.trainNN(train_labels,train_features)
-plt.plot(losses)
-test_ = embed.evaluateNN(test_features)
-labels = embed.evaluateNN(eval_features)
+labels = np.round(embed.evaluateNN(eval_features)).reshape((-1))
+writeAnswers(mainFolder,devel_id,labels,'DNN_amazonOnly' + '.csv')
 
+accuracies = embed.fullyTrainNN(train_labels,train_features,test_features,test_labels)
+plt.plot(accuracies)
 
-
-writeAnswers(mainFolder,devel_id,labels,'DNN' + '.csv')
+labels = np.round(embed.evaluateNN(eval_features)).reshape((-1))
+writeAnswers(mainFolder,devel_id,labels,'DNN_amazon_preTrain' + '.csv')
 
 
 
